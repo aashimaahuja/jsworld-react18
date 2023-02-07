@@ -1,0 +1,1418 @@
+import {
+  CodeSurfer,
+  CodeSurferColumns,
+  Step,
+} from "code-surfer";
+import { github, vsDark, nightOwl } from "@code-surfer/themes";
+import "prismjs/components/prism-smalltalk"
+import Demo1 from './Demo1'
+import Demo2 from './Demo2'
+import Demo3 from './Demo3'
+import Demo4 from './Demo4'
+import SinkIn from './SinkIn'
+import UseDeferredValueDemo1 from './UseDeferredValueDemo1'
+
+
+import image from './react-2.svg';
+import thankyou from './images/thankyou.png';
+
+import suspense1 from './suspenseImages/suspense1.png';
+import suspense2 from './suspenseImages/suspense2.png';
+import suspense3 from './suspenseImages/suspense3.png';
+import suspense4 from './suspenseImages/suspense4.png';
+
+export const theme = nightOwl;
+
+## What's new in React 18 ??
+
+---
+
+### React 18
+
++ Automatic Batching
++ Concurrency
++ New hooks introduced
+  + useId
+  + useTransition
+  + useDeferredValue
++ Suspense
+
+---
+
+<img src={tslide0} width='80%'/>
+
+---
+
+## Automatic Batching
+
+---
+
+<CodeSurfer theme={nightOwl}>
+
+```smalltalk title='Automatic Batching'
+We know that whenever there is a state update , react does a re render. 
+Batching is when React groups multiple state updates in a single render for 
+performance benefits.
+```
+</CodeSurfer>
+
+---
+
+<CodeSurfer theme={nightOwl}>
+
+```js
+
+const [count, setCount] = useState(0);
+const [isActive, setIsActive] = useState(false);
+
+
+
+```
+```js
+
+const [count, setCount] = useState(0);
+const [isActive, setIsActive] = useState(false);
+
+function incrementCount(){
+  
+}
+
+<button onClick={incrementCount}>Count</button>
+
+```
+```js
+
+const [count, setCount] = useState(0);
+const [isActive, setIsActive] = useState(false);
+
+function incrementCount(){
+  setCount(count+1);
+  setIsActive(!isActive);
+}
+
+<button onClick={incrementCount}>Count</button>
+
+```
+
+```js
+
+const [count, setCount] = useState(0);
+const [isActive, setIsActive] = useState(false);
+
+function incrementCount(){
+  setTimeout(() => {
+    setCount(count+1);
+    setIsActive(!isActive);
+  })
+}
+
+<button onClick={incrementCount}>Count</button>
+
+```
+
+```js
+
+const [count, setCount] = useState(0);
+const [isActive, setIsActive] = useState(false);
+
+function incrementCount(){
+  fetch(('/someurl').then(() => {
+    setCount(count+1);
+    setIsActive(!isActive);
+  })
+}
+
+<button onClick={incrementCount}>Count</button>
+
+```
+
+```js
+
+const [count, setCount] = useState(0);
+const [isActive, setIsActive] = useState(false);
+
+function incrementCount(){
+  fetch(('/someurl').then(() => {
+    // 2 rerenders before React 18
+    // 1 rerender in React 18
+    setCount(count+1);
+    setIsActive(!isActive);
+  })
+}
+
+<button onClick={incrementCount}>Count</button>
+
+```
+
+</CodeSurfer>
+
+---
+
+<CodeSurfer theme={nightOwl}>
+
+```smalltalk
+
+In React 18 , all state updates are batched out of the box irrespective of 
+how they are called.
+
+```
+
+</CodeSurfer>
+
+---
+
+<CodeSurfer theme={nightOwl}>
+
+```js
+function incrementCount(){
+  flushSync(() => {
+    setCount(count+1);
+  })
+  setIsActive(!isActive);
+}
+```
+
+</CodeSurfer>
+
+---
+
+## useId()
+
+---
+
+<CodeSurfer theme={nightOwl}>
+
+```smalltalk
+
+useId hook allows you to create unique ids which are consistent
+across server and client
+
+```
+
+```smalltalk
+
+useId hook allows you to create unique ids which are consistent
+across server and client
+
+We need unique ids for accessibility.
+
+```
+
+</CodeSurfer>
+
+---
+
+
+<CodeSurfer theme={nightOwl} >
+
+```js
+
+function Form(){
+
+
+}
+
+```
+
+```js
+
+function Form(){
+   return (
+    <>
+      <label>
+        Password:
+        <input
+          type="password"
+          aria-describedby="password-hint"
+        />
+      </label>
+      <p id="password-hint">
+        The password should contain at least 8 characters
+      </p>
+    </>
+  );
+
+}
+
+```
+
+```js 9,12 title='using hardcoded ids'
+
+function Form(){
+   return (
+    <>
+      <label>
+        Password:
+        <input
+          type="password"
+          aria-describedby="password-hint"
+        />
+      </label>
+      <p id="password-hint">
+        The password should contain at least 8 characters
+      </p>
+    </>
+  );
+
+}
+
+```
+
+```js title='using Math.random()'
+
+function Form(){
+   const randomId = Math.floor(Math.random() * 100);
+
+   return (
+    <>
+      <label>
+        Password:
+        <input
+          type="password"
+          aria-describedby={randomId}
+        />
+      </label>
+      <p id={randomId}>
+        The password should contain at least 8 characters
+      </p>
+    </>
+  );
+
+}
+
+```
+
+```js title='using useId hook'
+
+import {useId} from 'react'
+
+function Form(){
+   const passwordHintId = useId();
+
+   return (
+    <>
+      <label>
+        Password:
+        <input
+          type="password"
+          aria-describedby={passwordHintId}
+        />
+      </label>
+      <p id={passwordHintId}>
+        The password should contain at least 8 characters
+      </p>
+    </>
+  );
+
+}
+
+```
+
+```js title='using useId hook'
+
+import {useId} from 'react'
+
+function Form(){
+   const passwordHintId = useId();
+
+   return (
+    <>
+      <label>First Name:</label>
+      <input type="text" />
+
+      <label>Last Name:</label>
+      <input type="text" />
+      <label>
+        Password:
+        <input
+          type="password"
+          aria-describedby={passwordHintId}
+        />
+      </label>
+      <p id={passwordHintId}>
+        The password should contain at least 8 characters
+      </p>
+    </>
+  );
+
+}
+
+```
+
+```js title='using useId hook'
+
+import {useId} from 'react'
+
+function Form(){
+   const id = useId();
+
+   return (
+    <>
+      <label htmlFor={id + '-firstName'}>First Name:</label>
+      <input id={id + '-firstName'} type="text" />
+      
+      <label>Last Name:</label>
+      <input id={id + '-lastName'} type="text" />
+      <label>
+        Password:
+        <input
+          type="password"
+          aria-describedby={id + '-passwordHint'}
+        />
+      </label>
+      <p id={id + '-passwordHint'}>
+        The password should contain at least 8 characters
+      </p>
+    </>
+  );
+
+}
+
+```
+
+
+</CodeSurfer>
+
+---
+
+<CodeSurfer theme={nightOwl} >
+
+```smalltalk title='How these ids look like'
+
+- r0
+- r1
+- r3
+
+```
+
+</CodeSurfer>
+
+---
+
+## Concurrent React
+
+---
+
+<CodeSurfer theme={nightOwl} title='`Concurrency`'>
+
+```html
+
+<body>
+  <script src="A.js"></script>
+  <script src="B.js"></script>
+  <script src="C.js"></script>
+</body>
+
+```
+
+```html
+
+<body>
+  <script src="A.js" defer></script>
+  <script src="B.js"></script>
+  <script src="C.js"></script>
+</body>
+
+```
+
+</CodeSurfer>
+
+---
+
+<CodeSurfer theme={nightOwl}>
+
+```js
+setLayoffs('Twitter')
+setLayoffs('Meta')
+setLayoffs('Google')
+```
+```js 1
+setLayoffs('Twitter')
+setLayoffs('Meta')
+setLayoffs('Google')
+```
+```js 2
+setLayoffs('Twitter')
+setLayoffs('Meta')
+setLayoffs('Google')
+```
+```js 3
+setLayoffs('Twitter')
+setLayoffs('Meta')
+setLayoffs('Google')
+```
+
+</CodeSurfer>
+
+---
+
+### React can pause, interrupt or abandon a render
+
+---
+
+<Demo1 />
+
+---
+
+<CodeSurferColumns themes={[nightOwl, nightOwl]}>
+
+<Step>
+
+```js
+
+const [query, setQuery] = useState('')
+
+const [filteredItems, setFilteredItems] = 
+useState(dummyItems);
+
+
+
+```
+
+<Demo1 />
+
+</Step>
+
+<Step>
+
+```js
+
+const [query, setQuery] = useState('')
+
+const [filteredItems, setFilteredItems] = 
+useState(dummyItems);
+
+return (
+  <div>
+    <input onChange={filterItems} />
+    <ul>
+      {filteredItems.map((item) => (
+        <li>{item}</li>
+      ))}
+    </ul>
+  </div>
+);
+
+
+```
+
+<Demo1 />
+
+</Step>
+
+<Step>
+
+```js
+
+const [query, setQuery] = useState('')
+
+const [filteredItems, setFilteredItems] = 
+useState(dummyItems);
+
+const filterItems = (e) => {
+  const value = e.target.value;
+  const filteredItems = dummyItems.filter(
+    (item) => item.includes(value)
+  );
+
+  setQuery(value);
+  setFilteredItems([...filteredItems]);
+};
+
+return (
+  <div>
+    <input onChange={filterItems} />
+    <ul>
+      {filteredItems.map((item) => (
+        <li>{item}</li>
+      ))}
+    </ul>
+  </div>
+);
+
+```
+
+<Demo1 />
+
+</Step>
+
+
+</CodeSurferColumns>
+
+---
+
+### useTransition
+
+### useDeferredValue
+
+---
+
+<CodeSurferColumns themes={[nightOwl, nightOwl]}>
+
+<Step>
+
+```js
+
+const [query, setQuery] = useState('')
+
+const [filteredItems, setFilteredItems] = 
+useState(dummyItems);
+
+const filterItems = (e) => {
+  const value = e.target.value;
+  const filteredItems = dummyItems.filter(
+    (item) => item.includes(value)
+  );
+
+  setQuery(value);
+  setFilteredItems([...filteredItems]);
+};
+
+
+```
+
+<Demo2 />
+
+</Step>
+
+<Step>
+
+```js
+
+const [query, setQuery] = useState('')
+
+const [filteredItems, setFilteredItems] = 
+useState(dummyItems);
+
+const [isPending, startTransition] = useTransition();
+
+const filterItems = (e) => {
+  const value = e.target.value;
+  const filteredItems = dummyItems.filter(
+    (item) => item.includes(value)
+  );
+
+  setQuery(value);
+  setFilteredItems([...filteredItems]);
+};
+
+
+```
+
+<Demo2 />
+
+</Step>
+
+<Step>
+
+```js
+
+const [query, setQuery] = useState('')
+
+const [filteredItems, setFilteredItems] = 
+useState(dummyItems);
+
+const [isPending, startTransition] = useTransition();
+
+const filterItems = (e) => {
+  const value = e.target.value;
+  const filteredItems = dummyItems.filter(
+    (item) => item.includes(value)
+  );
+  setQuery(value);
+  startTransition(() => {
+    setFilteredItems([...filteredItems]);
+  })
+  
+};
+
+
+```
+
+<Demo2 />
+
+</Step>
+
+
+<Step>
+
+```js
+
+const [query, setQuery] = useState('')
+
+const [filteredItems, setFilteredItems] = 
+useState(dummyItems);
+
+const [isPending, startTransition] = useTransition();
+
+const filterItems = (e) => {
+  const value = e.target.value;
+  const filteredItems = dummyItems.filter(
+    (item) => item.includes(value)
+  );
+  setQuery(value);
+  startTransition(() => {
+    setFilteredItems([...filteredItems]);
+  })
+  
+};
+
+return (
+  <div>
+    <input onChange={filterItems} />
+    {isPending ? (
+        <div>Loading...</div>
+      ) : (
+        <ul>
+          {filteredItems.map((item) => (
+            <li>{item}</li>
+          ))}
+        </ul>
+      )
+    }
+  </div>
+);
+
+```
+
+<Demo2 />
+
+</Step>
+
+<Step>
+
+```js
+
+const [query, setQuery] = useState('')
+
+const [filteredItems, setFilteredItems] = 
+useState(dummyItems);
+
+const [isPending, startTransition] = useTransition();
+
+const filterItems = (e) => {
+  const value = e.target.value;
+  const filteredItems = dummyItems.filter(
+    (item) => item.includes(value)
+  );
+  setQuery(value);
+  startTransition(() => {
+    setFilteredItems([...filteredItems]);
+  })
+  
+};
+
+return (
+  <div>
+    <input onChange={filterItems} />
+    {isPending ? (
+        <div>Loading...</div>
+      ) : (
+        <ul>
+          {filteredItems.map((item) => (
+            <li>{item}</li>
+          ))}
+        </ul>
+      )
+    }
+  </div>
+);
+
+```
+
+<Demo3 />
+
+</Step>
+
+<Step>
+
+```js
+
+const [query, setQuery] = useState('')
+
+const [filteredItems, setFilteredItems] = 
+useState(dummyItems);
+
+const [isPending, startTransition] = useTransition();
+
+const filterItems = (e) => {
+  const value = e.target.value;
+  const filteredItems = dummyItems.filter(
+    (item) => item.includes(value)
+  );
+  setQuery(value);
+  startTransition(() => {
+    setFilteredItems([...filteredItems]);
+  })
+  
+};
+
+return (
+  <div>
+    <input onChange={filterItems} />
+      <ul style={{ opacity: isPending ? 0.5 : 1}}>
+        {filteredItems.map((item) => (
+          <li>{item}</li>
+        ))}
+      </ul>
+    }
+  </div>
+);
+
+```
+
+<Demo3 />
+
+</Step>
+
+</CodeSurferColumns>
+
+---
+
+<CodeSurferColumns themes={[nightOwl, vsDark]}>
+
+<Step>
+
+```js
+
+const [query, setQuery] = useState('')
+
+const [filteredItems, setFilteredItems] = 
+useState(dummyItems);
+
+const filterItems = (e) => {
+  const value = e.target.value;
+  const filteredItems = dummyItems.filter(
+    (item) => item.includes(value)
+  );
+  
+  setQuery(value);
+  setFilteredItems([...filteredItems]);
+  
+};
+
+return (
+  <div>
+    <input onChange={filterItems} />
+    <ItemsList items={filteredItems} />
+  </div>
+);
+
+```
+
+```js
+
+export const ItemsList = ({ items }) => {
+
+  return (
+    <ul>
+      {items.map((item, index) => (
+        <li key={index}>{item}</li>
+      ))}
+    </ul>
+  );
+};
+
+
+```
+
+</Step>
+
+<Step>
+
+```js
+
+const [query, setQuery] = useState('')
+
+const [filteredItems, setFilteredItems] = 
+useState(dummyItems);
+
+const filterItems = (e) => {
+  const value = e.target.value;
+  const filteredItems = dummyItems.filter(
+    (item) => item.includes(value)
+  );
+  
+  setQuery(value);
+  setFilteredItems([...filteredItems]);
+  
+};
+
+return (
+  <div>
+    <input onChange={filterItems} />
+    <ItemsList items={filteredItems} />
+  </div>
+);
+
+```
+
+```js
+
+export const ItemsList = ({ items }) => {
+
+  const deferredItems = useDeferredValue(items)
+
+  return (
+    <ul>
+      {deferredItems.map((item, index) => (
+        <li key={index}>{item}</li>
+      ))}
+    </ul>
+  );
+};
+
+
+```
+
+</Step>
+
+</CodeSurferColumns>
+
+---
+
+<UseDeferredValueDemo1 />
+
+---
+
+<CodeSurferColumns themes={[nightOwl, vsDark]}>
+
+<Step>
+
+```js
+
+function App(){
+
+  const [counter, setCounter] = useState(0)
+
+  return (
+    <div>
+      <button
+        onClick={() => {
+          setCounter((prevValue) => prevValue + 1);
+        }}
+      >
+        {counter}
+      </button>
+
+      <ItemList value={counter} />
+     
+    </div>
+  );
+}
+
+```
+
+```js
+
+const ItemList = ({ value }) => {
+   
+  const result = Array(90000)
+    .fill(1)
+    .map((_, index) => {
+        return <li key={index}>{value+index}</li>
+     });
+  return <ul>{result}</ul>;
+};
+
+```
+
+</Step>
+
+<Step>
+
+```js
+
+function App(){
+
+  const [counter, setCounter] = useState(0)
+  const deferredCounter = useDeferredValue(counter)
+
+  return (
+    <div>
+      <button
+        onClick={() => {
+          setCounter((prevValue) => prevValue + 1);
+        }}
+      >
+        {counter}
+      </button>
+
+      <ItemList value={counter} />
+     
+    </div>
+  );
+}
+
+```
+
+```js
+
+const ItemList = ({ value }) => {
+   
+  const result = Array(90000)
+    .fill(1)
+    .map((_, index) => {
+        return <li key={index}>{value+index}</li>
+     });
+  return <ul>{result}</ul>;
+};
+
+```
+
+</Step>
+
+<Step>
+
+```js
+
+function App(){
+
+  const [counter, setCounter] = useState(0)
+  const deferredCounter = useDeferredValue(counter)
+
+  return (
+    <div>
+      <button
+        onClick={() => {
+          setCounter((prevValue) => prevValue + 1);
+        }}
+      >
+        {counter}
+      </button>
+
+      <ItemList value={deferredCounter} />
+     
+    </div>
+  );
+}
+
+```
+
+```js
+
+const ItemList = ({ value }) => {
+   
+  const result = Array(90000)
+    .fill(1)
+    .map((_, index) => {
+        return <li key={index}>{value+index}</li>
+     });
+  return <ul>{result}</ul>;
+};
+
+```
+
+</Step>
+
+<Step>
+
+```js
+
+const MemoedList = React.memo(ItemList);
+
+function App(){
+
+  const [counter, setCounter] = useState(0)
+  const deferredCounter = useDeferredValue(counter)
+
+  return (
+    <div>
+      <button
+        onClick={() => {
+          setCounter((prevValue) => prevValue + 1);
+        }}
+      >
+        {counter}
+      </button>
+
+      <MemoedList value={deferredCounter} />
+     
+    </div>
+  );
+}
+
+```
+
+```js
+
+const ItemList = ({ value }) => {
+   
+  const result = Array(90000)
+    .fill(1)
+    .map((_, index) => {
+        return <li key={index}>{value+index}</li>
+     });
+  return <ul>{result}</ul>;
+};
+
+```
+
+</Step>
+
+<Step>
+
+```js
+
+const MemoedList = React.memo(ItemList);
+
+function App(){
+
+  const [counter, setCounter] = useState(0)
+  const deferredCounter = useDeferredValue(counter)
+  const isPending = deferredCounter !== counter
+
+  return (
+    <div>
+      <button
+        onClick={() => {
+          setCounter((prevValue) => prevValue + 1);
+        }}
+      >
+        {counter}
+      </button>
+
+      <div
+        style={{
+          opacity: isPending ? 0.5 : 1,
+        }}
+      >
+        <MemoedList value={deferredCounter} />
+      </div>
+     
+    </div>
+  );
+}
+
+```
+
+```js
+
+const ItemList = ({ value }) => {
+   
+  const result = Array(90000)
+    .fill(1)
+    .map((_, index) => {
+        return <li key={index}>{value+index}</li>
+     });
+  return <ul>{result}</ul>;
+};
+
+```
+
+
+
+</Step>
+
+</CodeSurferColumns>
+
+---
+
+<Demo4 />
+
+---
+
+<CodeSurfer theme={nightOwl}>
+
+```smalltalk
+
+Both useTransition and useDeferredValue give same results 
+but useDeferred value is used when you don't have control over the
+state update of a value you want to defer.
+
+```
+
+```smalltalk
+
+Both useTransition and useDeferredValue give same results 
+but useDeferred value is used when you don't have control over the
+state update of a value you want to defer.
+
+useDeferredValue and useTransition does an extra rerender. 
+
+```
+</CodeSurfer>
+
+---
+
+<SinkIn />
+
+---
+
+## Suspense
+
+---
+
+<CodeSurfer theme={nightOwl}>
+
+```smalltalk
+
+Suspense lets you specify the loading state for a part of the
+component tree if it's not yet ready to be displayed
+```
+</CodeSurfer>
+
+---
+
+<CodeSurfer theme={nightOwl}>
+
+```js title="Displaying fallback for lazy loaded component"
+
+function App(){
+  
+}
+
+```
+
+```js title="Displaying fallback for lazy loaded component"
+
+function App(){
+  const Profile = React.lazy(() => import("./Profile"));
+  
+}
+
+```
+
+```js title="Displaying fallback for lazy loaded component"
+
+function App(){
+  const Profile = React.lazy(() => import("./Profile"));
+
+  return (
+        <Profile />
+  )
+}
+
+```
+
+```js title="Displaying fallback for lazy loaded component"
+
+function App(){
+  const Profile = React.lazy(() => import("./Profile"));
+
+  return (
+      <Suspense fallback={<Loading />}>
+        <Profile />
+      </Suspense>
+  )
+}
+
+```
+
+```js title="Data Fetching"
+
+function App(){
+  const Profile = React.lazy(() => import("./Profile"));
+
+  return (
+      <Suspense fallback={<Loading />}>
+        <Profile />
+      </Suspense>
+  )
+}
+
+```
+
+```js title="Data Fetching"
+
+function Posts(){
+
+}
+
+function App(){
+  const Profile = React.lazy(() => import("./Profile"));
+
+  return (
+      <Suspense fallback={<Loading />}>
+        <Profile />
+      </Suspense>
+  )
+}
+
+```
+
+```js title="Data Fetching"
+
+function Posts(){
+  const posts = fetchPosts('/posts');
+
+}
+
+function App(){
+  const Profile = React.lazy(() => import("./Profile"));
+
+  return (
+      <Suspense fallback={<Loading />}>
+        <Profile />
+      </Suspense>
+  )
+}
+
+```
+
+```js title="Data Fetching"
+
+function Posts(){
+  const posts = fetchPosts('/posts');
+  return posts.map((post) => <div>{post.title}</div>)
+}
+
+function App(){
+  const Profile = React.lazy(() => import("./Profile"));
+
+  return (
+      <Suspense fallback={<Loading />}>
+        <Profile />
+      </Suspense>
+  )
+}
+
+```
+
+```js title="Data Fetching"
+
+function Posts(){
+  const posts = fetchPosts('/posts');
+  return posts.map((post) => <div>{post.title}</div>)
+}
+
+function App(){
+  const Profile = React.lazy(() => import("./Profile"));
+
+  return (
+      <Suspense fallback={<Loading />}>
+        <Profile />
+        <Posts />
+      </Suspense>
+  )
+}
+
+```
+
+```js title="Data Fetching"
+
+function Posts(){
+  const posts = fetchPosts('/posts');
+  return posts.map((post) => <div>{post.title}</div>)
+}
+
+function App(){
+  const Profile = React.lazy(() => import("./Profile"));
+
+  return (
+      <Suspense fallback={<Loading />}>
+        <Profile />
+        <Suspense fallback='Loading posts..'>
+          <Posts />
+        </Suspense>
+      </Suspense>
+  )
+}
+
+```
+
+```js title="Data Fetching" 3
+
+function Posts(){
+  const posts = fetchPosts('/posts');
+  return posts.map((post) => <div>{post.title}</div>)
+}
+
+function App(){
+  const Profile = React.lazy(() => import("./Profile"));
+
+  return (
+      <Suspense fallback={<Loading />}>
+        <Profile />
+        <Suspense fallback='Loading posts..'>
+          <Posts />
+        </Suspense>
+      </Suspense>
+  )
+}
+
+```
+
+```js title="Data Fetching"
+
+function Posts(){
+  const posts = fetchPosts('/posts');
+  return posts.map((post) => <div>{post.title}</div>)
+}
+
+function App(){
+  const Profile = React.lazy(() => import("./Profile"));
+
+  return (
+      <Suspense fallback={<Loading />}>
+        <Profile />
+        <Suspense fallback='Loading posts..'>
+          <Posts />
+        </Suspense>
+      </Suspense>
+  )
+}
+
+```
+
+```js title="Data Fetching"
+
+function Posts(){
+  const posts = fetchPosts('/posts');
+  return posts.map((post) => <div>{post.title}</div>)
+}
+
+function App(){
+  const Profile = React.lazy(() => import("./Profile"));
+
+  return (
+    <ErrorBoundary fallback={<Error />}>
+      <Suspense fallback={<Loading />}>
+        <Profile />
+        <Suspense fallback='Loading posts..'>
+          <Posts />
+        </Suspense>
+      </Suspense>
+    </ErrorBoundary>
+  )
+  
+}
+
+```
+
+</CodeSurfer>
+
+---
+
+
+<CodeSurfer theme={nightOwl}>
+
+```smalltalk
+Before React 18 suspense was only used for code splitting and only supported on client.
+However now it also supports server side rendering with streaming
+```
+
+</CodeSurfer>
+
+---
+
+<img src={suspense1} width='80%'/>
+
+---
+
+<img src={suspense2} width='80%'/>
+
+---
+
+<img src={suspense3} width='80%'/>
+
+---
+
+<img src={suspense4} width='80%'/>
+
+---
+
+<img src={thankyou}  />
+
+
+
